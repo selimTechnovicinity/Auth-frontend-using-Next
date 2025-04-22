@@ -186,7 +186,7 @@ const DashboardPage = () => {
               </div>
               <div className="bg-gradient-to-r from-green-600 to-green-900  text-white p-6 rounded-xl ">
                 <h3 className="text-xl font-bold">
-                  35% off on Friday's between 3 PM t 7 PM
+                  35% off on Friday&apos;s between 3 PM t 7 PM
                 </h3>
                 <div className="mt-4 flex justify-center">
                   <span className="mt-4 inline-block bg-green-900 text-white text-sm px-4 py-2 rounded-md">

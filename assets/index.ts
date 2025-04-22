@@ -15,6 +15,7 @@ const assets = {
     amex: require("./pic/amex.png"),
     discover: require("./pic/discover.png"),
     wallet: require("./pic/wallet.png"),
+    not_found: require("./pic/not-found.png"),
   },
 };
 

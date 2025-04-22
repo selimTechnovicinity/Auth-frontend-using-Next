@@ -1,18 +1,52 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import assets from "@/assets";
 import CustomForm from "@/components/form/CustomForm";
 import CustomInput from "@/components/form/CustomInput";
+import { setPasswordMutationFn } from "@/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Typography } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React from "react";
 import { FieldValues } from "react-hook-form";
+import { z } from "zod";
+
+const SetPasswordValidationSchema = z.object({
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" }),
+  confirmPassword: z.string().min(8, {
+    message: "Password must be at least 8 characters long",
+  }),
+});
 
 const SetPasswordPage = () => {
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
   const router = useRouter();
   const handleSubmit = async (values: FieldValues) => {
-    console.log("Reset email sent to:", values.email);
-    // your logic for forgot password
+    console.log("Reset email sent to:", values);
+
+    try {
+      setLoading(true);
+      if (values.password !== values.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+      const response = await setPasswordMutationFn(values);
+      if (response.status === 200) {
+        router.push("/login");
+      } else {
+        setError("Failed to set password. Please try again.");
+      }
+    } catch (error) {
+      setError(
+        "An error occurred while setting the password. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,7 +63,11 @@ const SetPasswordPage = () => {
             for your account.
           </Typography>
 
-          <CustomForm onSubmit={handleSubmit} defaultValues={{ email: "" }}>
+          <CustomForm
+            onSubmit={handleSubmit}
+            resolver={zodResolver(SetPasswordValidationSchema)}
+            defaultValues={{ password: "", confirmPassword: "" }}
+          >
             <div className="mb-4">
               <CustomInput
                 name="password"
@@ -40,12 +78,17 @@ const SetPasswordPage = () => {
             </div>
             <div className="mb-4">
               <CustomInput
-                name="password"
+                name="confirmPassword"
                 label="Re-enter password"
                 type="password"
                 fullWidth
               />
             </div>
+            {error && (
+              <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+                {error}
+              </Typography>
+            )}
 
             <Button
               fullWidth

@@ -24,7 +24,7 @@ const Navbar = () => {
         {/* Left greeting - hidden on mobile */}
         <div className="hidden md:block order-1 md:order-none">
           <h1 className="text-lg md:text-xl font-semibold">Hi, John!</h1>
-          <p className="text-sm text-gray-500">Let's check your store today</p>
+          <p className="text-sm text-gray-500">Let&apos;s check your store today</p>
         </div>
 
         {/* Right section */}

@@ -1,20 +1,49 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import assets from "@/assets";
 import CustomForm from "@/components/form/CustomForm";
 import CustomInput from "@/components/form/CustomInput";
+import { forgotPasswordMutationFn } from "@/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Typography } from "@mui/material";
+import { AxiosError } from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { FieldValues } from "react-hook-form";
 import { GoChevronLeft } from "react-icons/go";
+import { z } from "zod";
+
+const ForgotPasswordValidationSchema = z.object({
+  email: z.string().email("Please enter a valid email!"),
+});
 
 const ForgotPasswordPage = () => {
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
   const handleSubmit = async (values: FieldValues) => {
     console.log("Reset email sent to:", values.email);
-    // your logic for forgot password
+
+    try {
+      setLoading(true);
+      const response = await forgotPasswordMutationFn(values);
+      if (response.status === 200) {
+        router.push("/forgot-password/verify");
+      } else {
+        setError("Failed to send reset email. Please try again.");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof AxiosError && error.response?.data?.message
+          ? error.response.data.message
+          : "An unexpected error occurred.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,10 +69,20 @@ const ForgotPasswordPage = () => {
             your password
           </Typography>
 
-          <CustomForm onSubmit={handleSubmit} defaultValues={{ email: "" }}>
+          <CustomForm
+            onSubmit={handleSubmit}
+            resolver={zodResolver(ForgotPasswordValidationSchema)}
+            defaultValues={{ email: "" }}
+          >
             <div className="mb-4">
               <CustomInput name="email" label="Email" type="email" fullWidth />
             </div>
+
+            {error && (
+              <Typography variant="body2" color="error" mb={2}>
+                {error}
+              </Typography>
+            )}
             <Button
               fullWidth
               variant="contained"

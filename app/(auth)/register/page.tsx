@@ -1,26 +1,47 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import assets from "@/assets";
 import CustomForm from "@/components/form/CustomForm";
 import CustomInput from "@/components/form/CustomInput";
+import { registerMutationFn } from "@/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Checkbox, FormControlLabel, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React from "react";
 import { FieldValues } from "react-hook-form";
 import { z } from "zod";
 
-export const LoginValidationSchema = z.object({
-  email: z.string().email("Please enter a valid email!"),
-  password: z.string().min(3, "Password must be at least 3 characters!"),
+const RegisterValidationSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  businessName: z.string().min(1, "Business Name is required"),
 });
 
 const RegisterPage = () => {
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+
   const router = useRouter();
 
   const handleRegister = async (values: FieldValues) => {
     console.log("Login values", values);
+    try {
+      setLoading(true);
+      const respnse = await registerMutationFn(values);
+      if (respnse.status === 200) {
+        router.push("/login");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } catch (error) {
+      setError("An error occurred during registration. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,6 +74,7 @@ const RegisterPage = () => {
 
             <CustomForm
               onSubmit={handleRegister}
+              resolver={zodResolver(RegisterValidationSchema)}
               defaultValues={{
                 email: "",
                 password: "",
@@ -85,7 +107,11 @@ const RegisterPage = () => {
                   fullWidth
                 />
               </Grid>
-
+              {error && (
+                <Typography variant="body2" color="error" mb={2}>
+                  {error}
+                </Typography>
+              )}
               <div className="flex justify-between items-center mb-4">
                 <FormControlLabel
                   control={<Checkbox size="small" />}

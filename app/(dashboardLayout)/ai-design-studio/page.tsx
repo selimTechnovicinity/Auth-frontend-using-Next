@@ -1,6 +1,9 @@
 "use client";
 
 import assets from "@/assets";
+import CustomForm from "@/components/form/CustomForm";
+import CustomInput from "@/components/form/CustomInput";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
   Button,
@@ -9,17 +12,21 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
-  TextField,
   Typography,
 } from "@mui/material";
 import Image from "next/image";
 import { useState } from "react";
+import { FieldValues } from "react-hook-form";
 import { BsExclamationCircleFill } from "react-icons/bs";
+import { z } from "zod";
+
+const CreateAdValidationSchema = z.object({
+  businessName: z.string().min(1, "Business name is required"),
+  offerDescription: z.string().min(1, "Offer description is required"),
+  bgDescription: z.string().optional(),
+});
 
 const CreateAdPage = () => {
-  const [businessName, setBusinessName] = useState("");
-  const [offerDescription, setOfferDescription] = useState("");
-  const [bgDescription, setBgDescription] = useState("");
   const [selectedBg, setSelectedBg] = useState(0);
   const [previewCount, setPreviewCount] = useState(4);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,8 +40,9 @@ const CreateAdPage = () => {
     }
   };
 
-  const handlePublishClick = () => {
+  const handlePublishClick = (values: FieldValues) => {
     setIsModalOpen(true);
+    console.log(values);
   };
 
   const handleConfirm = () => {
@@ -44,123 +52,132 @@ const CreateAdPage = () => {
 
   return (
     <div className="">
-      <Grid container spacing={4} columns={{ xs: 2, sm: 1, md: 1 }}>
-        {/* Create Ad Section */}
+      <CustomForm
+        onSubmit={handlePublishClick}
+        resolver={zodResolver(CreateAdValidationSchema)}
+        defaultValues={{
+          businessName: "",
+          offerDescription: "",
+          bgDescription: "",
+        }}
+      >
+        <Grid container spacing={4} columns={{ xs: 2, sm: 1, md: 1 }}>
+          {/* Create Ad Section */}
 
-        <Grid>
-          <div className="bg-white p-4 md:p-6 rounded-lg shadow-md ">
-            <Typography variant="h6" gutterBottom>
-              Create AD
-            </Typography>
-            <div className="flex gap-3 flex-wrap mb-4">
-              <Button variant="outlined">Use Default</Button>
-              <Button variant="outlined">Custom</Button>
-            </div>
-
-            <TextField
-              fullWidth
-              label="Business Name"
-              variant="outlined"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              sx={{ mb: 3 }}
-            />
-            <TextField
-              fullWidth
-              label="Offer Description"
-              multiline
-              rows={2}
-              variant="outlined"
-              value={offerDescription}
-              onChange={(e) => setOfferDescription(e.target.value)}
-              sx={{ mb: 3 }}
-            />
-            <TextField
-              fullWidth
-              label="Background Image Description"
-              multiline
-              rows={2}
-              variant="outlined"
-              value={bgDescription}
-              onChange={(e) => setBgDescription(e.target.value)}
-              sx={{ mb: 3 }}
-            />
-
-            <Typography variant="subtitle1" gutterBottom>
-              Select Background Image
-            </Typography>
-            <div className="flex gap-3 flex-wrap mb-4">
-              {[0, 1, 2, 3].map((index) => (
-                <div
-                  key={index}
-                  className={`w-20 h-20 border-2 rounded-md cursor-pointer flex items-center justify-center ${
-                    selectedBg === index
-                      ? "border-green-600"
-                      : "border-gray-300"
-                  }`}
-                  onClick={() => setSelectedBg(index)}
-                >
-                  <Image
-                    src={assets.images.cover}
-                    alt="bg"
-                    width={60}
-                    height={60}
-                    className="object-cover rounded"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <Typography variant="body2" color="primary">
-                {previewCount} Preview left
+          <Grid>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md ">
+              <Typography variant="h6" gutterBottom>
+                Create AD
               </Typography>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleGeneratePreview}
-              >
-                Generate Preview
-              </Button>
-            </div>
-          </div>
-        </Grid>
+              <div className="flex gap-3 flex-wrap mb-8">
+                <Button variant="outlined">Use Default</Button>
+                <Button variant="outlined">Custom</Button>
+              </div>
 
-        {/* Preview Section */}
-        <Grid>
-          <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
-            <Typography variant="h6" gutterBottom>
-              Preview
-            </Typography>
-            <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center mb-4">
-              {previewImage ? (
-                <Image
-                  src={previewImage}
-                  alt="Preview"
-                  width={400}
-                  height={200}
-                  className="rounded object-cover w-full h-full"
+              <Grid container spacing={2} my={1}>
+                <CustomInput
+                  name="businessName"
+                  label="Business Name"
+                  type="businessName"
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  size="medium"
                 />
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  No Preview Generated Yet
+                <CustomInput
+                  name="offerDescription"
+                  label="Offer Description"
+                  type="text"
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  size="medium"
+                />
+                <CustomInput
+                  name="bgDescription"
+                  fullWidth
+                  label="Background Image Description"
+                  type="text"
+                  size="medium"
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+
+              <Typography variant="subtitle1" gutterBottom>
+                Select Background Image
+              </Typography>
+              <div className="flex gap-3 flex-wrap mb-4">
+                {[0, 1, 2, 3].map((index) => (
+                  <div
+                    key={index}
+                    className={`w-20 h-20 border-2 rounded-md cursor-pointer flex items-center justify-center ${
+                      selectedBg === index
+                        ? "border-green-600"
+                        : "border-gray-300"
+                    }`}
+                    onClick={() => setSelectedBg(index)}
+                  >
+                    <Image
+                      src={assets.images.cover}
+                      alt="bg"
+                      width={60}
+                      height={60}
+                      className="object-cover rounded"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <Typography variant="body2" color="primary">
+                  {previewCount} Preview left
                 </Typography>
-              )}
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handleGeneratePreview}
+                >
+                  Generate Preview
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col md:flex-row justify-end gap-3">
-              <Button variant="outlined" sx={{ border: "none" }}>
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handlePublishClick}
-              >
-                Publish
-              </Button>
+          </Grid>
+
+          {/* Preview Section */}
+          <Grid>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
+              <Typography variant="h6" gutterBottom>
+                Preview
+              </Typography>
+              <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center mb-4">
+                {previewImage ? (
+                  <Image
+                    src={previewImage}
+                    alt="Preview"
+                    width={400}
+                    height={200}
+                    className="rounded object-cover w-full h-full"
+                  />
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    No Preview Generated Yet
+                  </Typography>
+                )}
+              </div>
+              <div className="flex flex-col md:flex-row justify-end gap-3">
+                <Button variant="outlined" sx={{ border: "none" }}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handlePublishClick}
+                  type="submit"
+                >
+                  Publish
+                </Button>
+              </div>
             </div>
-          </div>
+          </Grid>
         </Grid>
-      </Grid>
+      </CustomForm>
 
       {/* Confirmation Modal */}
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>

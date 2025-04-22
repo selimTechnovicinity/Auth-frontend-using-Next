@@ -1,26 +1,45 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import assets from "@/assets";
 import CustomForm from "@/components/form/CustomForm";
 import CustomInput from "@/components/form/CustomInput";
+import { loginMutationFn } from "@/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Checkbox, FormControlLabel, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React from "react";
 import { FieldValues } from "react-hook-form";
 import { z } from "zod";
 
-export const LoginValidationSchema = z.object({
+const LoginValidationSchema = z.object({
   email: z.string().email("Please enter a valid email!"),
   password: z.string().min(3, "Password must be at least 3 characters!"),
 });
 
 const LoginPage = () => {
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+
   const router = useRouter();
 
   const handleLogin = async (values: FieldValues) => {
     console.log("Login values", values);
+    try {
+      setLoading(true);
+      const response = await loginMutationFn(values);
+      if (response.status === 200) {
+        router.push("/dashboard");
+      } else {
+        setError("Invalid email or password!");
+      }
+    } catch (error) {
+      setError("Invalid email or password!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,6 +69,7 @@ const LoginPage = () => {
 
             <CustomForm
               onSubmit={handleLogin}
+              resolver={zodResolver(LoginValidationSchema)}
               defaultValues={{ email: "", password: "" }}
             >
               <Grid container spacing={2} my={1}>
@@ -66,6 +86,11 @@ const LoginPage = () => {
                   fullWidth
                 />
               </Grid>
+              {error && (
+                <Typography variant="body2" color="error" mb={2}>
+                  {error}
+                </Typography>
+              )}
 
               <div className="flex justify-between items-center mb-4">
                 <FormControlLabel

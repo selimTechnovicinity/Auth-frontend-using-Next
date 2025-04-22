@@ -9,6 +9,9 @@ export const theme = createTheme({
     secondary: {
       main: "#00664F",
     },
+    error: {
+      main: "#FF0000",
+    }
   },
   components: {
     MuiButton: {

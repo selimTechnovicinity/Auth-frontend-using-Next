@@ -1,20 +1,45 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import assets from "@/assets";
 import CustomForm from "@/components/form/CustomForm";
 import CustomInput from "@/components/form/CustomInput";
+import { verifyEmailMutationFn } from "@/lib/api";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Typography } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React from "react";
 import { FieldValues } from "react-hook-form";
 import { GoChevronLeft } from "react-icons/go";
+import { z } from "zod";
+
+const VerifyCodeValidationSchema = z.object({
+  otp: z.string().min(6, {
+    message: "OTP must be at least 6 characters long",
+  }),
+});
 
 const VerifyPage = () => {
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
   const router = useRouter();
   const handleSubmit = async (values: FieldValues) => {
-    console.log("Reset email sent to:", values.email);
-    // your logic for forgot password
+    console.log("Otp:", values.otp);
+
+    try {
+      setLoading(true);
+      const respone = await verifyEmailMutationFn(values);
+      if (respone.status === 200) {
+        router.push("/set-password");
+      } else {
+        setError("Invalid OTP");
+      }
+    } catch (error) {
+      setError("Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,15 +64,29 @@ const VerifyPage = () => {
             An authentication code has been sent to your email.
           </Typography>
 
-          <CustomForm onSubmit={handleSubmit} defaultValues={{ email: "" }}>
+          <CustomForm
+            onSubmit={handleSubmit}
+            resolver={zodResolver(VerifyCodeValidationSchema)}
+            defaultValues={{ otp: "" }}
+          >
             <div className="mb-4">
               <CustomInput
-                name="password"
+                name="otp"
                 label="Enter Code"
                 type="password"
                 fullWidth
               />
             </div>
+            {error && (
+              <Typography
+                variant="body2"
+                color="red"
+                className="text-left font-semibold"
+                sx={{ mb: 3 }}
+              >
+                {error}
+              </Typography>
+            )}
             <Typography
               variant="body2"
               mt={2}
@@ -55,7 +94,7 @@ const VerifyPage = () => {
               sx={{ mb: 3 }}
             >
               Didn’t receive a code?{" "}
-              <Link href="/register" className="text-red-500 font-semibold">
+              <Link href="" className="text-red-500 font-semibold">
                 Resend
               </Link>
             </Typography>
